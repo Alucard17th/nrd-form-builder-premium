@@ -16,7 +16,7 @@
  * Plugin Name:       Nrd Form Builder Premium
  * Plugin URI:        https://github.com/Alucard17th
  * Description:       Drag and drop form builder for wordpress
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            Noureddine Eddallal
  * Author URI:        https://github.com/Alucard17th/
  * License:           GPL-2.0+
@@ -35,7 +35,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'NRD_FORM_BUILDER_VERSION', '1.0.0' );
+define( 'NRD_FORM_BUILDER_VERSION', '1.0.1' );
 
 // API Base URL
 define('NRD_API_BASE_URL', 'http://127.0.0.1:8000/api/nrd-form-builder/');
