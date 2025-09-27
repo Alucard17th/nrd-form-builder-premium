@@ -9,14 +9,14 @@
  * that starts the plugin.
  *
  * @link              https://github.com/Alucard17th
- * @since             1.0.1
+ * @since             1.0.0
  * @package           Nrd_Form_Builder
  *
  * @wordpress-plugin
  * Plugin Name:       Nrd Form Builder Premium
  * Plugin URI:        https://github.com/Alucard17th
  * Description:       Drag and drop form builder for wordpress
- * Version:           1.0.1
+ * Version:           1.0.0
  * Author:            Noureddine Eddallal
  * Author URI:        https://github.com/Alucard17th/
  * License:           GPL-2.0+
