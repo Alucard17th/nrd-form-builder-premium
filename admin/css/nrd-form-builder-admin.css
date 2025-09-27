@@ -1,0 +1,330 @@
+/**
+ * Admin-specific CSS for NRD Form Builder plugin
+ */
+
+/* ---------------------- */
+/* CSS VARIABLES          */
+/* ---------------------- */
+:root {
+    --nrd-primary: #5f30cc;     /* Main purple color */
+    --nrd-primary-hover: #4c1a99;
+    --nrd-success: #28a745;     /* Green for active */
+    --nrd-error: #dc3545;       /* Red for errors / inactive */
+    --nrd-text-secondary: #6c757d;
+    --nrd-bg-light: #f7f7f7;
+    --nrd-box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------------------- */
+/* GENERAL STYLES         */
+/* ---------------------- */
+body, .nrd-dashboard-container {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--nrd-bg-light);
+}
+
+.nrd-dashboard-container {
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: var(--nrd-box-shadow);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ---------------------- */
+/* HEADER                 */
+/* ---------------------- */
+.nrd-dashboard-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.nrd-dashboard-header img {
+    max-width: 200px;
+    margin-bottom: 15px;
+}
+
+.nrd-dashboard-subtitle {
+    font-size: 18px;
+    color: var(--nrd-text-secondary);
+    font-weight: 400;
+}
+
+.nrd-license-section{
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    padding: 20px 20px;
+    box-shadow: var(--nrd-box-shadow);
+}
+.nrd-license-actions{
+    margin-top: 10px;
+}
+.nrd-license-form input{
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    margin-right: 10px;
+    width:25vw;
+}
+
+/* ---------------------- */
+/* BUTTONS                */
+/* ---------------------- */
+.nrd-button-primary {
+    background-color: var(--nrd-primary);
+    color: #fff;
+    border: none;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.nrd-button-primary:hover {
+    background-color: var(--nrd-primary-hover);
+}
+
+.nrd-button-secondary {
+    background-color: var(--nrd-error);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.nrd-button-secondary:hover {
+    background-color: #c82333;
+}
+
+.nrd-button:disabled {
+    background-color: #ddd;
+    cursor: not-allowed;
+}
+
+/* ---------------------- */
+/* DASHBOARD LAYOUTS      */
+/* ---------------------- */
+.nrd-first-row,
+.nrd-second-row,
+.nrd-third-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.nrd-text-description {
+    width: 48%;
+    font-size: 16px;
+    color: var(--nrd-text-secondary);
+}
+
+.nrd-text-description h3 {
+    font-size: 22px;
+    color: var(--nrd-primary);
+    margin-bottom: 15px;
+}
+
+.nrd-text-description p {
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.nrd-image-section {
+    width: 48%;
+}
+
+.nrd-image-section img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* Third row paragraph */
+.nrd-third-row p {
+    width: 48%;
+    font-size: 16px;
+}
+
+/* ---------------------- */
+/* FOOTER                 */
+/* ---------------------- */
+.nrd-dashboard-footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 14px;
+    color: var(--nrd-text-secondary);
+}
+
+/* ---------------------- */
+/* UPGRADE NOW SECTION    */
+/* ---------------------- */
+.nrd-upgrade-now {
+    background-color: #fff;
+    padding: 25px 30px;
+    border-radius: 10px;
+    margin-top: 10px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+.nrd-upgrade-text {
+    font-size: 16px;
+    color: var(--nrd-text-secondary);
+    margin-bottom: 15px;
+}
+
+.nrd-upgrade-list {
+    list-style: disc;
+    margin-left: 20px;
+    margin-bottom: 15px;
+    color: var(--nrd-text-secondary);
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.nrd-upgrade-list li {
+    margin-bottom: 10px;
+}
+
+.nrd-upgrade-free-note {
+    font-size: 14px;
+    color: var(--nrd-error);
+    margin-bottom: 20px;
+}
+
+/* ---------------------- */
+/* BADGES                 */
+/* ---------------------- */
+.nrd-status-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 12px;
+    color: #fff;
+    text-transform: capitalize;
+}
+
+.nrd-status-active {
+    background-color: var(--nrd-success);
+}
+
+.nrd-status-inactive {
+    background-color: var(--nrd-error);
+}
+
+/* ---------------------- */
+/* FORM BUILDER SPECIFIC  */
+/* ---------------------- */
+#fb-rendered-form {
+    clear: both;
+    display: none;
+}
+
+#fb-rendered-form button {
+    float: right;
+}
+
+.nrd-short-code:hover {
+    cursor: pointer;
+}
+
+.nrd-form-bd-error-message {
+    color: var(--nrd-error);
+}
+
+#nrd-form-bd-deactivate-button {
+    margin-left: 10px !important;
+    background-color: var(--nrd-error) !important;
+    border: none !important;
+    color: #fff !important;
+}
+
+.nrd-form-bd-card {
+    padding: 10px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    border-bottom: 3px solid var(--nrd-primary);
+    border-right: 3px solid var(--nrd-primary);
+}
+
+.nrd-form-bd-card-content {
+    display: flex;
+    justify-content: space-around;
+}
+
+.nrd-form-bd-activate {
+    color: var(--nrd-success);
+}
+
+.nrd-form-bd-inactive {
+    color: var(--nrd-error);
+}
+
+.form-wrap.form-builder .frmb-control li::before {
+    color: var(--nrd-primary) !important;
+    font-size: 20px !important;
+}
+.form-wrap.form-builder .btn-group{
+    margin-top: 15px !important;
+}
+.form-wrap.form-builder .btn-group>.btn {
+    background-color: var(--nrd-primary) !important;
+    border: none !important;
+    color: #fff !important;
+    margin: 0 5px !important;
+}
+
+.step-delete-btn {
+    margin-left: 10px;
+    color: var(--nrd-error);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 20px;
+    border-radius: 50%;
+    background-color: #fff;
+    padding: 0px 6px;
+}
+
+.copiable-item {
+    cursor: pointer;
+    background-color: rgb(214, 214, 214);
+}
+
+/* ---------------------- */
+/* RESPONSIVE DESIGN      */
+/* ---------------------- */
+@media (max-width: 768px) {
+    .nrd-dashboard-container {
+        padding: 20px;
+    }
+
+    .nrd-first-row,
+    .nrd-second-row {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .nrd-text-description,
+    .nrd-image-section {
+        width: 100%;
+        text-align: center;
+    }
+
+    .nrd-image-section img {
+        max-width: 100%;
+    }
+
+    .nrd-third-row p {
+        width: 100%;
+    }
+}
