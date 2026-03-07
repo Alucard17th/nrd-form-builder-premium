@@ -172,6 +172,7 @@ class Nrd_Form_Builder {
 		$isActive = get_option( 'nrd_form_bd_license_active' ) == 'active' ? true : false;
 		if ( $isActive ) {
 			$this->loader->add_action( 'init', $plugin_admin, 'register_cpt_nrd_form_bd' );
+			$this->loader->add_action( 'init', $plugin_admin, 'register_blocks' );
 			$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_custom_meta_box' );
 			$this->loader->add_action( 'admin_menu', $plugin_admin, 'hide_publish_box' );
 			$this->loader->add_action( 'wp_ajax_save_nrd_wp_fb', $plugin_admin, 'save_nrd_wp_fb' );

@@ -448,6 +448,7 @@ class Nrd_Form_Builder_Admin {
 			'public'             => true,
 			'publicly_queryable' => true,
 			'show_ui'            => true,
+			'show_in_rest'       => true,
 			'show_in_menu'       => false,
 			'query_var'          => true,
 			'rewrite'            => array( 'slug' => 'nrd-form-bd' ),
@@ -459,6 +460,47 @@ class Nrd_Form_Builder_Admin {
 		);
 
 		register_post_type( 'nrd-form-bd', $args );
+	}
+
+	public function register_blocks() {
+		if ( ! function_exists( 'register_block_type' ) ) {
+			return;
+		}
+
+		wp_register_script(
+			'nrd-form-bd-block-editor',
+			plugin_dir_url( __FILE__ ) . 'js/nrd-form-builder-block.js',
+			array( 'wp-blocks', 'wp-element', 'wp-components', 'wp-data', 'wp-block-editor' ),
+			$this->version,
+			true
+		);
+
+		register_block_type(
+			'nrd/form-builder',
+			array(
+				'editor_script'   => 'nrd-form-bd-block-editor',
+				'render_callback' => array( $this, 'render_form_block' ),
+				'attributes'      => array(
+					'formId' => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
+				),
+			)
+		);
+	}
+
+	public function render_form_block( $attributes ) {
+		$form_id = 0;
+		if ( is_array( $attributes ) && isset( $attributes['formId'] ) ) {
+			$form_id = absint( $attributes['formId'] );
+		}
+
+		if ( ! $form_id ) {
+			return '';
+		}
+
+		return do_shortcode( '[nrd_form_bd id="' . $form_id . '"]' );
 	}
 	public function add_custom_meta_box() {
 		if ( ! $this->check_local_license_status() ) {
