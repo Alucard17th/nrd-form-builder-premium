@@ -24,7 +24,7 @@
  * @subpackage Nrd_Form_Builder/includes
  * @author     Noureddine Eddallal <eddallal.noureddine@gmail.com>
  */
-class Nrd_Form_Builder_i18n {
+class Nrd_Form_Builder_I18n {
 
 
 	/**
@@ -37,11 +37,7 @@ class Nrd_Form_Builder_i18n {
 		load_plugin_textdomain(
 			'nrd-form-builder',
 			false,
-			dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages/'
+			dirname( plugin_basename( __FILE__ ), 2 ) . '/languages/'
 		);
-
 	}
-
-
-
 }

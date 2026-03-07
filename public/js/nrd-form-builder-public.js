@@ -85,7 +85,6 @@
           // IMPORTANT: render into the target div, not the <form>
           $target.empty().formRender({ formData: formDataJson });
         } catch (e) {
-          console.error("NRD FB render error:", e);
         }
       });
 
@@ -96,7 +95,6 @@
           try {
             $(this).formRender({ formData: window.formRenderData });
           } catch (e) {
-            console.error("NRD FB render error (legacy):", e);
           }
         });
       }
@@ -137,7 +135,6 @@
       fd.set("nrd_fb_nonce", nonce);
 
       if (!formId || !nonce) {
-        console.error("Missing form_id or nonce", { formId, nonce });
         alert("Form configuration error. Please refresh and try again.");
         return;
       }
@@ -183,10 +180,6 @@
             if ($submitBtn.is("button")) $submitBtn.text("Submit");
             if ($submitBtn.is("input")) $submitBtn.val("Submit");
           }
-          console.error(
-            "Submit error:",
-            (xhr && (xhr.responseJSON || xhr.responseText)) || xhr
-          );
           $(
             '<div class="nrd-form-bd-message nrd-form-bd-error-message">An error occurred while submitting the form. Please try again later.</div>'
           ).insertAfter($submitBtn.length ? $submitBtn : $form);
@@ -260,10 +253,6 @@
             if ($submitBtn.is("button")) $submitBtn.text("Submit");
             if ($submitBtn.is("input")) $submitBtn.val("Submit");
           }
-          console.error(
-            "Submit error (legacy):",
-            (xhr && (xhr.responseJSON || xhr.responseText)) || xhr
-          );
           $(
             '<div class="nrd-form-bd-message nrd-form-bd-error-message">An error occurred while submitting the form. Please try again later.</div>'
           ).insertAfter($submitBtn.length ? $submitBtn : $form);

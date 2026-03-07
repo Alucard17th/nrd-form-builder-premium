@@ -78,7 +78,6 @@ class Nrd_Form_Builder {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
-
 	}
 
 	/**
@@ -103,33 +102,32 @@ class Nrd_Form_Builder {
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-nrd-form-builder-loader.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-nrd-form-builder-loader.php';
 
 		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-nrd-form-builder-i18n.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-nrd-form-builder-i18n.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-nrd-form-builder-admin.php';
+		require_once plugin_dir_path( __DIR__ ) . 'admin/class-nrd-form-builder-admin.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-nrd-form-builder-public.php';
+		require_once plugin_dir_path( __DIR__ ) . 'public/class-nrd-form-builder-public.php';
 
-		/**	
+		/**
 		 * The class responsible for handling the secrets
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/includes/class-nrd-fb-secrets.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/includes/class-nrd-fb-sheets-service.php';
+		require_once plugin_dir_path( __DIR__ ) . 'admin/includes/class-nrd-fb-secrets.php';
+		require_once plugin_dir_path( __DIR__ ) . 'admin/includes/class-nrd-fb-sheets-service.php';
 
 		$this->loader = new Nrd_Form_Builder_Loader();
-
 	}
 
 	/**
@@ -143,10 +141,9 @@ class Nrd_Form_Builder {
 	 */
 	private function set_locale() {
 
-		$plugin_i18n = new Nrd_Form_Builder_i18n();
+		$plugin_i18n = new Nrd_Form_Builder_I18n();
 
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
-
 	}
 
 	/**
@@ -165,47 +162,45 @@ class Nrd_Form_Builder {
 
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'custom_dashboard_menu' );
 		$this->loader->add_action( 'admin_notices', $plugin_admin, 'nrd_form_bd_please_activate_plugin' );
-		
-		$this->loader->add_action( 'wp_ajax_save_nrd_license_response', $plugin_admin, 'save_nrd_license_response' );
-		// $this->loader->add_action( 'wp_ajax_nopriv_save_nrd_license_response', $plugin_admin, 'save_nrd_license_response' );
+
+		$this->loader->add_action( 'wp_ajax_nrd_form_bd_activate_license', $plugin_admin, 'ajax_activate_license' );
+		$this->loader->add_action( 'wp_ajax_nrd_form_bd_deactivate_license', $plugin_admin, 'ajax_deactivate_license' );
 
 		// Ajax Smtp Test
 		$this->loader->add_action( 'wp_ajax_nrd_smtp_test_ajax', $plugin_admin, 'nrd_smtp_test_ajax' );
-		
-		$isActive = get_option('nrd_form_bd_license_active') == 'active' ? true : false;
-		if($isActive){
+
+		$isActive = get_option( 'nrd_form_bd_license_active' ) == 'active' ? true : false;
+		if ( $isActive ) {
 			$this->loader->add_action( 'init', $plugin_admin, 'register_cpt_nrd_form_bd' );
 			$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_custom_meta_box' );
 			$this->loader->add_action( 'admin_menu', $plugin_admin, 'hide_publish_box' );
 			$this->loader->add_action( 'wp_ajax_save_nrd_wp_fb', $plugin_admin, 'save_nrd_wp_fb' );
-			$this->loader->add_action( 'wp_ajax_nopriv_save_nrd_wp_fb', $plugin_admin, 'save_nrd_wp_fb' );
 			$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'disable_autosave_for_nrd_form_bd' );
 
-			$this->loader->add_action('init', $plugin_admin, 'register_cpt_nrd_form_bd_submission');
+			$this->loader->add_action( 'init', $plugin_admin, 'register_cpt_nrd_form_bd_submission' );
 			// Admin UI: columns for submissions list
-			$this->loader->add_action('add_meta_boxes', $plugin_admin, 'add_submission_details_metabox');
-			$this->loader->add_filter('manage_nrd-form-bd-submission_posts_columns', $plugin_admin, 'submissions_columns');
-			$this->loader->add_action('manage_nrd-form-bd-submission_posts_custom_column', $plugin_admin, 'submissions_column_content', 10, 2);
-			$this->loader->add_filter('manage_edit-nrd-form-bd-submission_sortable_columns', $plugin_admin, 'submissions_sortable_columns');
+			$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_submission_details_metabox' );
+			$this->loader->add_filter( 'manage_nrd-form-bd-submission_posts_columns', $plugin_admin, 'submissions_columns' );
+			$this->loader->add_action( 'manage_nrd-form-bd-submission_posts_custom_column', $plugin_admin, 'submissions_column_content', 10, 2 );
+			$this->loader->add_filter( 'manage_edit-nrd-form-bd-submission_sortable_columns', $plugin_admin, 'submissions_sortable_columns' );
 
 			// Optional: put Submissions under the same top-level menu
-			$this->loader->add_action('admin_menu', $plugin_admin, 'register_submissions_submenu');
+			$this->loader->add_action( 'admin_menu', $plugin_admin, 'register_submissions_submenu' );
 
 			//  Integrations
-			$this->loader->add_action('admin_menu', $plugin_admin, 'add_sheets_submenu');
-			$this->loader->add_action('wp_ajax_nrd_fb_test_sheets', $plugin_admin, 'ajax_test_sheets');
+			$this->loader->add_action( 'admin_menu', $plugin_admin, 'add_sheets_submenu' );
+			$this->loader->add_action( 'wp_ajax_nrd_fb_test_sheets', $plugin_admin, 'ajax_test_sheets' );
 
 			// Elementor Widget
-			$this->loader->add_action('elementor/widgets/widgets_registered', $plugin_admin, 'register_elementor_widgets');
+			$this->loader->add_action( 'elementor/widgets/widgets_registered', $plugin_admin, 'register_elementor_widgets' );
 
 			// License Management
-			$this->loader->add_action('admin_notices', $plugin_admin, 'show_license_warning');
-			$this->loader->add_action('check_plugin_license', $plugin_admin, 'check_license_status');
+			$this->loader->add_action( 'admin_notices', $plugin_admin, 'show_license_warning' );
+			$this->loader->add_action( 'check_plugin_license', $plugin_admin, 'check_license_status' );
 
 			// Plugin Updates Check
-			$this->loader->add_action('init', $plugin_admin, 'nrd_plugin_setup_updater');
+			$this->loader->add_action( 'init', $plugin_admin, 'nrd_plugin_setup_updater' );
 		}
-
 	}
 
 	/**
@@ -266,5 +261,4 @@ class Nrd_Form_Builder {
 	public function get_version() {
 		return $this->version;
 	}
-
 }

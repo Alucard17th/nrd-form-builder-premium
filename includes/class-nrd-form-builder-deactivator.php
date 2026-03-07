@@ -30,7 +30,5 @@ class Nrd_Form_Builder_Deactivator {
 	 * @since    1.0.0
 	 */
 	public static function deactivate() {
-
 	}
-
 }

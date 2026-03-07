@@ -28,37 +28,40 @@
    * Although scripts in the WordPress core, Plugins and Themes may be
    * practising this, we should strive to set a better example in our own work.
    */
-  $(window).load(function () {
-    jQuery(function ($) {
-      const nrdActivateLicenserAPIUrl = nrdFormBD.api_base_url + "activate-license";
-        // "http://127.0.0.1:8000/api/nrd-form-builder/activate-license";
-      const nrdDeactivateLicenserAPIUrl = nrdFormBD.api_base_url + "deactivate-license";
-        // "http://127.0.0.1:8000/api/nrd-form-builder/deactivate-license";
+  $(function () {
+    // Guard + helper
+    const hasLocalized = typeof nrdFormBD !== "undefined" && nrdFormBD;
+    const ajaxUrl =
+      hasLocalized && nrdFormBD.ajax_url ? nrdFormBD.ajax_url : undefined;
+    const adminNonce =
+      hasLocalized && nrdFormBD.nonce ? nrdFormBD.nonce : undefined;
 
-      // Guard + helper
-      if (typeof nrdFormBD === "undefined" || !nrdFormBD.nonce) {
-        console.warn("NRD Form Builder: missing localized nonce");
+    const withNonce = (data = {}) => {
+      if (!adminNonce) {
+        return Object.assign({}, data);
       }
-      const withNonce = (data = {}) =>
-        Object.assign({}, data, { nonce: nrdFormBD.nonce });
+      return Object.assign({}, data, { nonce: adminNonce });
+    };
 
-      var $fbEditor = $(document.getElementById("fb-editor")),
-        $formContainer = $(document.getElementById("fb-rendered-form")),
-        fbOptions = {
-          onSave: function () {
-            let saveBtn = $(".save-template");
-            // $fbEditor.toggle();
-            // $formContainer.toggle();
-            $("form", $formContainer).formRender({
-              formData: formBuilder.formData,
-            });
-            var postIdInput = document.getElementById("post_id");
-            var postId = postIdInput ? postIdInput.value : null;
-            console.log(formBuilder.formData, postId);
-            saveNrdFb(formBuilder.formData, postId, saveBtn);
-            // make the clicked save button disabled
-          },
-        };
+    var $fbEditor = $(document.getElementById("fb-editor"));
+    var $formContainer = $(document.getElementById("fb-rendered-form"));
+    var formBuilder = null;
+
+    if ($fbEditor.length) {
+      var fbOptions = {
+        onSave: function () {
+          let saveBtn = $(".save-template");
+          // $fbEditor.toggle();
+          // $formContainer.toggle();
+          $("form", $formContainer).formRender({
+            formData: formBuilder.formData,
+          });
+          var postIdInput = document.getElementById("post_id");
+          var postId = postIdInput ? postIdInput.value : null;
+          saveNrdFb(formBuilder.formData, postId, saveBtn);
+          // make the clicked save button disabled
+        },
+      };
 
       // Check if formData is defined
       if (typeof formData !== "undefined") {
@@ -66,83 +69,82 @@
         fbOptions.formData = formData;
       }
 
-      var formBuilder = $fbEditor.formBuilder(fbOptions);
+      formBuilder = $fbEditor.formBuilder(fbOptions);
 
       $(".edit-form", $formContainer).click(function () {
         $fbEditor.toggle();
         $formContainer.toggle();
       });
+    }
 
-      function saveNrdFb(data, postID, saveBtn) {
-        saveBtn.prop("disabled", true);
-        saveBtn.text("Saving...");
-        let title = document.getElementById("title").value;
-        let googleSheetID = document.getElementById("google_sheet_id")
-          ? document.getElementById("google_sheet_id").value
-          : "";
-        let googleSheetPage = document.getElementById("google_sheet_page")
-          ? document.getElementById("google_sheet_page").value
-          : "";
-        if (title == "") {
-          title = "Untitled Form";
-        }
-        if (googleSheetID !== "" && googleSheetPage == "") {
-          // Get the google_sheet_page element
-          let googleSheetPageInput =
-            document.getElementById("google_sheet_page");
-
-          // Check if an error message already exists, to avoid duplicate messages
-          let existingError = document.getElementById("google_sheet_error");
-
-          if (!existingError) {
-            // Create an error message element
-            let errorMessage = document.createElement("span");
-            errorMessage.id = "google_sheet_error"; // Assign an ID to prevent duplicate errors
-            errorMessage.style.color = "red"; // Style the error message (you can also add more styling)
-            errorMessage.textContent =
-              "Error: Please provide a value for Google Sheet Page";
-
-            // Insert the error message after the google_sheet_page input
-            googleSheetPageInput.parentNode.insertBefore(
-              errorMessage,
-              googleSheetPageInput.nextSibling
-            );
-          }
-
-          saveBtn.prop("disabled", false);
-          saveBtn.text("Save");
-          return;
-        }
-
-        $.ajax({
-          //   data: {
-          //     action: "save_nrd_wp_fb",
-          //     title: title,
-          //     content: data,
-          //     post_id: postID,
-          //     google_sheet_id: googleSheetID,
-          //     google_sheet_page: googleSheetPage,
-          //   },
-          data: withNonce({
-            action: "save_nrd_wp_fb",
-            title: title,
-            content: data,
-            post_id: postID,
-            google_sheet_id: googleSheetID,
-            google_sheet_page: googleSheetPage,
-          }),
-          type: "post",
-          url: ajaxurl,
-          success: function (data) {
-            console.log(data.data); //should print out the name since you sent it along
-            let editUrl = data.data;
-            window.location.href = editUrl;
-          },
-          error: function (jqXHR, textStatus, errorThrown) {
-            console.log(errorThrown);
-          },
-        });
+    function saveNrdFb(data, postID, saveBtn) {
+      saveBtn.prop("disabled", true);
+      saveBtn.text("Saving...");
+      let title = document.getElementById("title").value;
+      let googleSheetID = document.getElementById("google_sheet_id")
+        ? document.getElementById("google_sheet_id").value
+        : "";
+      let googleSheetPage = document.getElementById("google_sheet_page")
+        ? document.getElementById("google_sheet_page").value
+        : "";
+      if (title == "") {
+        title = "Untitled Form";
       }
+
+      if (googleSheetID !== "" && googleSheetPage == "") {
+        // Get the google_sheet_page element
+        let googleSheetPageInput = document.getElementById("google_sheet_page");
+
+        // Check if an error message already exists, to avoid duplicate messages
+        let existingError = document.getElementById("google_sheet_error");
+
+        if (!existingError) {
+          // Create an error message element
+          let errorMessage = document.createElement("span");
+          errorMessage.id = "google_sheet_error"; // Assign an ID to prevent duplicate errors
+          errorMessage.style.color = "red"; // Style the error message (you can also add more styling)
+          errorMessage.textContent =
+            "Error: Please provide a value for Google Sheet Page";
+
+          // Insert the error message after the google_sheet_page input
+          googleSheetPageInput.parentNode.insertBefore(
+            errorMessage,
+            googleSheetPageInput.nextSibling
+          );
+        }
+
+        saveBtn.prop("disabled", false);
+        saveBtn.text("Save");
+        return;
+      }
+
+      $.ajax({
+        //   data: {
+        //     action: "save_nrd_wp_fb",
+        //     title: title,
+        //     content: data,
+        //     post_id: postID,
+        //     google_sheet_id: googleSheetID,
+        //     google_sheet_page: googleSheetPage,
+        //   },
+        data: withNonce({
+          action: "save_nrd_wp_fb",
+          title: title,
+          content: data,
+          post_id: postID,
+          google_sheet_id: googleSheetID,
+          google_sheet_page: googleSheetPage,
+        }),
+        type: "post",
+        url: ajaxUrl,
+        success: function (data) {
+          let editUrl = data.data;
+          window.location.href = editUrl;
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+        },
+      });
+    }
 
       $(".nrd-short-code").click(function () {
         const postID = $("#post_id").val();
@@ -156,162 +158,106 @@
       });
 
       // activate license
-      $("#nrd-form-bd-activate-button").click(function () {
-        const licenseKey = $("#nrd-form-bd-license-key").val();
-        $("#nrd-form-bd-activate-button").prop("disabled", true);
-        $("#nrd-form-bd-activate-button").text("Activating...");
-        $(".nrd-form-bd-message").remove();
-        var form = new FormData();
-        // form.append("key", "A3D697Q9WWJhFS4TlkvnmpXLY");
-        form.append("license_key", licenseKey);
-        form.append("email", "eddallal.noureddine@gmail.com");
-        form.append("domain", "www.zenappoint.com");
+      $(document)
+        .off("click.nrd", "#nrd-form-bd-activate-button")
+        .on("click.nrd", "#nrd-form-bd-activate-button", function (e) {
+          e.preventDefault();
+          const licenseKey = $("#nrd-form-bd-license-key").val();
+          $("#nrd-form-bd-activate-button").prop("disabled", true);
+          $("#nrd-form-bd-activate-button").text("Activating...");
+          $(".nrd-form-bd-message").remove();
 
-        const bearerToken =
-          "1|Soosxx0JLFKtUKVOobT5aBAZoJEkYCqPNZVDG7Oc45f385e0";
-
-        var settings = {
-          url: nrdActivateLicenserAPIUrl,
-          method: "POST",
-          timeout: 0,
-          headers: {
-            Authorization: "Bearer " + bearerToken,
-            // "Cookie": "XSRF-TOKEN=eyJpdiI6ImxJcUEwelgweDhaZlBzU1BkQkZtSVE9PSIsInZhbHVlIjoiaU5XQ3ZEc3J0c1NVY2YzU0pHUERhWGRUTU5abFZxa0RtaGlTM1laeXpTNFcwMHpCaFA5RXN3RVNkdm5GU1lrQVVpYlVhclA4MHAyaGVMQy9tSWZwajU2VExxRzFQRG15Qjc3OU5lUEVsN2tUY0pISktYRzZwZWhYN3JnY2VtVGMiLCJtYWMiOiJmYjhkZTk2Nzc1NTA3Mzc0NjJlODcyZGNhNTcxODFjMjI2NWNiY2JmOThhNjQ0OTNjODBkNGYzZTgyNjgxOTI2IiwidGFnIjoiIn0%3D; laravel_session=eyJpdiI6IjBVeU5OK3JMTmpEVXVtU1pBYVR2dUE9PSIsInZhbHVlIjoiWlFxYzR1RWlidUxPT2xDdnA3RURZUkM5ZzdpZ1dTMlJVTVN2MVpxbitMazlrWXppaFFGa0tON3BWN1lUNTVzeVZUR0VIRHdhV1E0Y2RMWDNRS1ZjNTlwOWtKYW81cDhtQU9yaDF1cTRUWUNxWEhhN2ZOb0pIcU9jR2tFTGtxZHMiLCJtYWMiOiJjMjUwMDc4Y2M3MDlkN2M3NjIzZjk5ZmZjZThiMTgzODlkOWVlODFiMzgyZjdkZGY0N2FmMzI1OThhOWNiY2ZiIiwidGFnIjoiIn0%3D",
-            Accept: "application/json",
-          },
-          xhrFields: {
-            withCredentials: false,
-          },
-          processData: false,
-          mimeType: "multipart/form-data",
-          contentType: false,
-          data: form,
-        };
-
-        $.ajax(settings).done(function (response) {
-          // convert response to json
-          response = JSON.parse(response);
-          const status = response.status;
-          if (status == "invalid") {
-            $("#nrd-form-bd-activate-button").prop("disabled", false);
-            $("#nrd-form-bd-activate-button").text("Activate");
-            // append error message after #nrd-form-bd-activate-button
-            $(
-              '<div class="nrd-form-bd-message nrd-form-bd-error-message">Invalid license key</div>'
-            ).insertAfter($("#nrd-form-bd-activate-button"));
-          }
-
-          if (status == "active") {
-            $.ajax({
-              data: withNonce({
-                action: "save_nrd_license_response",
-                status: status,
-                license_key: licenseKey,
-              }),
-              type: "post",
-              url: ajaxurl,
-              success: function (data) {
-                console.log(data); //should print out the name since you sent it along
+          $.ajax({
+            data: withNonce({
+              action: "nrd_form_bd_activate_license",
+              license_key: licenseKey,
+            }),
+            type: "post",
+            url: ajaxUrl,
+            success: function (resp) {
+              if (resp && resp.success) {
                 window.location.reload();
-              },
-              error: function (jqXHR, textStatus, errorThrown) {
-                console.log(errorThrown);
-              },
-            });
-          } else {
-            $(
-              '<div class="nrd-form-bd-message nrd-form-bd-error-message">This license key is suspended</div>'
-            ).insertAfter($("#nrd-form-bd-activate-button"));
-          }
+                return;
+              }
 
-          $("#nrd-form-bd-activate-button").prop("disabled", false);
-          $("#nrd-form-bd-activate-button").text("Activate");
+              const message =
+                resp && resp.data && resp.data.message
+                  ? resp.data.message
+                  : "Activation failed";
+              $(
+                '<div class="nrd-form-bd-message nrd-form-bd-error-message"></div>'
+              )
+                .text(message)
+                .insertAfter($("#nrd-form-bd-activate-button"));
+            },
+            error: function (jqXHR) {
+              let message = "An unexpected error occurred.";
+              if (jqXHR && jqXHR.responseJSON && jqXHR.responseJSON.data) {
+                message = jqXHR.responseJSON.data.message || message;
+              }
+
+              $(
+                '<div class="nrd-form-bd-message nrd-form-bd-error-message"></div>'
+              )
+                .text(message)
+                .insertAfter($("#nrd-form-bd-activate-button"));
+            },
+            complete: function () {
+              $("#nrd-form-bd-activate-button").prop("disabled", false);
+              $("#nrd-form-bd-activate-button").text("Activate");
+            },
+          });
         });
-        $.ajax(settings).fail(function (jqXHR, textStatus, errorThrown) {
-          // Parse the JSON response
-          var response = JSON.parse(jqXHR.responseText);
-
-          // Check if the message exists in the response and display it
-          if (response.message) {
-            $(
-              '<div class="nrd-form-bd-message nrd-form-bd-error-message">' +
-                response.message +
-                "</div>"
-            ).insertAfter($("#nrd-form-bd-activate-button"));
-          } else {
-            // If no message is available, show a generic error
-            $(
-              '<div class="nrd-form-bd-message nrd-form-bd-error-message">An unexpected error occurred.</div>'
-            ).insertAfter($("#nrd-form-bd-activate-button"));
-          }
-
-          $("#nrd-form-bd-activate-button").prop("disabled", false);
-          $("#nrd-form-bd-activate-button").text("Activate");
-        });
-      });
 
       // deactivate license
-      $("#nrd-form-bd-deactivate-button").click(function () {
-        const licenseKey = $("#nrd-form-bd-license-key").val();
+      $(document)
+        .off("click.nrd", "#nrd-form-bd-deactivate-button")
+        .on("click.nrd", "#nrd-form-bd-deactivate-button", function (e) {
+          e.preventDefault();
+          $("#nrd-form-bd-deactivate-button").prop("disabled", true);
+          $("#nrd-form-bd-deactivate-button").text("Deactivating...");
+          $(".nrd-form-bd-message").remove();
 
-        $("#nrd-form-bd-deactivate-button").prop("disabled", true);
-        $("#nrd-form-bd-deactivate-button").text("Deactivating...");
-        var form = new FormData();
-        form.append("license_key", licenseKey);
-
-        const bearerToken =
-          "1|Soosxx0JLFKtUKVOobT5aBAZoJEkYCqPNZVDG7Oc45f385e0";
-
-        var settings = {
-          url: nrdDeactivateLicenserAPIUrl,
-          method: "POST",
-          timeout: 0,
-          headers: {
-            Authorization: "Bearer " + bearerToken,
-            Accept: "application/json",
-          },
-          xhrFields: {
-            withCredentials: false,
-          },
-          processData: false,
-          mimeType: "multipart/form-data",
-          contentType: false,
-          data: form,
-        };
-
-        $.ajax(settings).done(function (response) {
-          response = JSON.parse(response);
-          console.log(response);
-          const status = response.status;
-          if (status == "invalid") {
-            $("#nrd-form-bd-deactivate-button").prop("disabled", false);
-            $("#nrd-form-bd-deactivate-button").text("Activate");
-            // append error message after #nrd-form-bd-deactivate-button
-            $(
-              '<div class="nrd-form-bd-message nrd-form-bd-error-message">Invalid license key</div>'
-            ).insertAfter($("#nrd-form-bd-deactivate-button"));
-          }
-
-          if (status == "inactive") {
-            $.ajax({
-              data: withNonce({
-                action: "save_nrd_license_response",
-                status: status,
-                license_key: licenseKey,
-              }),
-              type: "post",
-              url: ajaxurl,
-              success: function (data) {
-                //reload page
+          $.ajax({
+            data: withNonce({
+              action: "nrd_form_bd_deactivate_license",
+            }),
+            type: "post",
+            url: ajaxUrl,
+            success: function (resp) {
+              if (resp && resp.success) {
                 window.location.reload();
-              },
-              error: function (jqXHR, textStatus, errorThrown) {
-                console.log(errorThrown);
-              },
-            });
-          }
+                return;
+              }
+
+              const message =
+                resp && resp.data && resp.data.message
+                  ? resp.data.message
+                  : "Deactivation failed";
+              $(
+                '<div class="nrd-form-bd-message nrd-form-bd-error-message"></div>'
+              )
+                .text(message)
+                .insertAfter($("#nrd-form-bd-deactivate-button"));
+            },
+            error: function (jqXHR) {
+              let message = "An unexpected error occurred.";
+              if (jqXHR && jqXHR.responseJSON && jqXHR.responseJSON.data) {
+                message = jqXHR.responseJSON.data.message || message;
+              }
+
+              $(
+                '<div class="nrd-form-bd-message nrd-form-bd-error-message"></div>'
+              )
+                .text(message)
+                .insertAfter($("#nrd-form-bd-deactivate-button"));
+            },
+            complete: function () {
+              $("#nrd-form-bd-deactivate-button").prop("disabled", false);
+              $("#nrd-form-bd-deactivate-button").text("Deactivate");
+            },
+          });
         });
-      });
 
       // copy clicked item
       $(".copiable-item").click(function () {
@@ -340,12 +286,12 @@
         var data = {
           action: "nrd_smtp_test_ajax",
           smtp_to: $("#nrd_smtp_to").val(),
-          _ajax_nonce: nrdFormBD.smtp_nonce,
+          _ajax_nonce: hasLocalized ? nrdFormBD.smtp_nonce : undefined,
         };
 
         $("#nrd-smtp-notice").html("<p>Sending test email...</p>");
 
-        $.post(nrdFormBD.ajax_url, data, function (response) {
+        $.post(ajaxUrl, data, function (response) {
           if (response.success) {
             $("#nrd-smtp-notice").html(
               '<div class="notice notice-success"><p>' +
@@ -361,6 +307,5 @@
           }
         });
       });
-    });
   });
 })(jQuery);

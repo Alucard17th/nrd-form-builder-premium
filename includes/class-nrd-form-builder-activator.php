@@ -30,7 +30,20 @@ class Nrd_Form_Builder_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
-
+		if ( get_option( 'nrd_form_bd_license_active', null ) === null ) {
+			add_option( 'nrd_form_bd_license_active', 'inactive' );
+		}
+		if ( get_option( 'nrd_form_bd_license_key', null ) === null ) {
+			add_option( 'nrd_form_bd_license_key', '' );
+		}
+		if ( get_option( 'nrd_form_bd_api_token', null ) === null ) {
+			add_option( 'nrd_form_bd_api_token', '' );
+		}
+		if ( get_option( 'nrd_fb_default_sheet_id', null ) === null ) {
+			add_option( 'nrd_fb_default_sheet_id', '' );
+		}
+		if ( get_option( 'nrd_fb_default_sheet_tab', null ) === null ) {
+			add_option( 'nrd_fb_default_sheet_tab', 'Leads' );
+		}
 	}
-
 }

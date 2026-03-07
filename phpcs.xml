@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<ruleset name="NRD Form Builder Premium">
+	<description>PHPCS configuration for NRD Form Builder Premium.</description>
+
+	<arg name="extensions" value="php" />
+	<arg name="colors" />
+	<arg name="basepath" value="." />
+
+	<file>.</file>
+
+	<exclude-pattern>*/admin/includes/plugin-update-checker/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/admin/class-nrd-elementor-widget.php</exclude-pattern>
+
+	<rule ref="WordPress-Core">
+		<exclude name="WordPress.NamingConventions.ValidVariableName" />
+		<exclude name="WordPress.NamingConventions.ValidFunctionName" />
+		<exclude name="WordPress.PHP.YodaConditions" />
+		<exclude name="Universal.Operators.DisallowShortTernary" />
+		<exclude name="Universal.Operators.StrictComparisons.LooseEqual" />
+		<exclude name="Universal.Operators.StrictComparisons.LooseNotEqual" />
+		<exclude name="Squiz.Scope.MethodScope.Missing" />
+		<exclude name="WordPress.DateTime.RestrictedFunctions.date_date" />
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName" />
+		<exclude name="Generic.Files.OneObjectStructurePerFile.MultipleFound" />
+		<exclude name="Internal.LineEndings.Mixed" />
+	</rule>
+</ruleset>

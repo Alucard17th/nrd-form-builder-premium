@@ -50,8 +50,7 @@ class Nrd_Form_Builder_Public {
 	public function __construct( $plugin_name, $version ) {
 
 		$this->plugin_name = $plugin_name;
-		$this->version = $version;
-
+		$this->version     = $version;
 	}
 
 	/**
@@ -74,7 +73,6 @@ class Nrd_Form_Builder_Public {
 		 */
 
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/nrd-form-builder-public.css', array(), $this->version, 'all' );
-
 	}
 
 	/**
@@ -97,7 +95,7 @@ class Nrd_Form_Builder_Public {
 		 */
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/nrd-form-builder-public.js', array( 'jquery' ), $this->version, false );
-		wp_enqueue_script( $this->plugin_name.'-form-render-public', 'https://cdnjs.cloudflare.com/ajax/libs/jQuery-formBuilder/3.19.7/form-render.min.js', array( 'jquery' ), '3.19.7', true );
+		wp_enqueue_script( $this->plugin_name . '-form-render-public', plugin_dir_url( __FILE__ ) . '../admin/vendor/jquery-formbuilder/form-render.min.js', array( 'jquery' ), '3.19.7', true );
 		wp_localize_script( $this->plugin_name, 'my_ajax_object', array( 'ajax_url' => admin_url( 'admin-ajax.php' ) ) );
 	}
 
@@ -109,22 +107,27 @@ class Nrd_Form_Builder_Public {
 	public function render_form_shortcode( $atts ) {
 		$atts = shortcode_atts( array( 'id' => '' ), $atts );
 		$id   = absint( $atts['id'] );
-		if ( ! $id ) return '';
+		if ( ! $id ) {
+			return '';
+		}
 
 		$post = get_post( $id );
-		if ( ! $post || $post->post_type !== 'nrd-form-bd' ) return '';
+		if ( ! $post || $post->post_type !== 'nrd-form-bd' ) {
+			return '';
+		}
 
-		$content        = $post->post_content; // RAW JSON string as saved
-		$title          = get_the_title( $id );
-		$linkedSheetId  = get_post_meta( $id, 'nrd_form_bd_google_sheet_id', true );
-		$linkedSheetPg  = get_post_meta( $id, 'nrd_form_bd_google_sheet_page', true );
-		$nonce          = wp_create_nonce( 'nrd_form_submit_' . $id );
+		$content       = $post->post_content; // RAW JSON string as saved
+		$title         = get_the_title( $id );
+		$linkedSheetId = get_post_meta( $id, 'nrd_form_bd_google_sheet_id', true );
+		$linkedSheetPg = get_post_meta( $id, 'nrd_form_bd_google_sheet_page', true );
+		$nonce         = wp_create_nonce( 'nrd_form_submit_' . $id );
 
 		$container_id = 'nrd-fb-form-' . $id;
 		$json_id      = 'nrd-fb-json-' . $id;
 
-		$json_raw = trim((string) $content);
-		if ($json_raw === '') { $json_raw = '[]'; }
+		$json_raw = trim( (string) $content );
+		if ( $json_raw === '' ) {
+			$json_raw = '[]'; }
 
 		ob_start(); ?>
 		<div class="nrd-fb-instance"
@@ -151,7 +154,7 @@ class Nrd_Form_Builder_Public {
 			<!-- <button type="submit">Submit</button> -->
 			</form>
 
-			<script type="application/json" id="<?php echo esc_attr($json_id); ?>">
+			<script type="application/json" id="<?php echo esc_attr( $json_id ); ?>">
 			<?php echo $json_raw; // raw JSON, not wp_json_encode() ?>
 			</script>
 		</div>
@@ -165,18 +168,30 @@ class Nrd_Form_Builder_Public {
 		}
 
 		// ---- 0) Basic input & CSRF ------------------------------------------------
-		$formId = isset($_POST['form_id']) ? absint($_POST['form_id']) : 0;
-		$nonce  = isset($_POST['nrd_fb_nonce']) ? sanitize_text_field( wp_unslash($_POST['nrd_fb_nonce']) ) : '';
+		$formId = isset( $_POST['form_id'] ) ? absint( $_POST['form_id'] ) : 0;
+		$nonce  = isset( $_POST['nrd_fb_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nrd_fb_nonce'] ) ) : '';
 
 		if ( ! $formId || ! wp_verify_nonce( $nonce, 'nrd_form_submit_' . $formId ) ) {
-			wp_send_json_error( array( 'status' => 'error', 'errors' => array('Invalid or missing nonce.') ), 400 );
+			wp_send_json_error(
+				array(
+					'status' => 'error',
+					'errors' => array( 'Invalid or missing nonce.' ),
+				),
+				400
+			);
 		}
 
 		// Rate-limit by IP+form (e.g., 1 submit / 10s)
-		$ip     = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field( $_SERVER['REMOTE_ADDR'] ) : '0.0.0.0';
+		$ip     = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( $_SERVER['REMOTE_ADDR'] ) : '0.0.0.0';
 		$rl_key = 'nrd_fb_rl_' . md5( $ip . '|' . $formId );
 		if ( get_transient( $rl_key ) ) {
-			wp_send_json_error( array( 'status' => 'error', 'errors' => array('Please wait a moment before submitting again.') ), 429 );
+			wp_send_json_error(
+				array(
+					'status' => 'error',
+					'errors' => array( 'Please wait a moment before submitting again.' ),
+				),
+				429
+			);
 		}
 		set_transient( $rl_key, 1, 10 ); // 10 seconds
 
@@ -190,30 +205,30 @@ class Nrd_Form_Builder_Public {
 			'png'      => 'image/png',
 			'pdf'      => 'application/pdf',
 		);
-		$max_bytes = 5 * 1024 * 1024; // 5MB per file
+		$max_bytes     = 5 * 1024 * 1024; // 5MB per file
 
 		if ( ! empty( $_FILES ) ) {
 			foreach ( $_FILES as $file_key => $file ) {
 				try {
-					if ( isset($file['error']) && $file['error'] === UPLOAD_ERR_OK && isset($file['size']) && $file['size'] > 0 ) {
+					if ( isset( $file['error'] ) && $file['error'] === UPLOAD_ERR_OK && isset( $file['size'] ) && $file['size'] > 0 ) {
 						if ( $file['size'] > $max_bytes ) {
-							$errorMessages[] = 'File too large (' . esc_html($file_key) . ')';
+							$errorMessages[] = 'File too large (' . esc_html( $file_key ) . ')';
 							continue;
 						}
 
 						// Validate filename & type
-						$ext = pathinfo( $file['name'], PATHINFO_EXTENSION );
-						$ext = strtolower( $ext );
-						$ok_ext = array( 'jpg','jpeg','png','pdf' );
+						$ext    = pathinfo( $file['name'], PATHINFO_EXTENSION );
+						$ext    = strtolower( $ext );
+						$ok_ext = array( 'jpg', 'jpeg', 'png', 'pdf' );
 						if ( ! in_array( $ext, $ok_ext, true ) ) {
-							$errorMessages[] = 'Invalid file type (' . esc_html($file_key) . ')';
+							$errorMessages[] = 'Invalid file type (' . esc_html( $file_key ) . ')';
 							continue;
 						}
 
 						$upload_overrides = array(
-							'test_form' => false,
-							'mimes'     => $allowed_mimes,
-							'unique_filename_callback' => function( $dir, $name, $ext ) {
+							'test_form'                => false,
+							'mimes'                    => $allowed_mimes,
+							'unique_filename_callback' => function ( $dir, $name, $ext ) {
 								$base = sanitize_file_name( wp_basename( $name, $ext ) );
 								return $base . '-' . time() . $ext;
 							},
@@ -226,7 +241,7 @@ class Nrd_Form_Builder_Public {
 							$attachment = array(
 								'guid'           => $movefile['url'],
 								'post_mime_type' => $movefile['type'],
-								'post_title'     => preg_replace('/\.[^.]+$/', '', basename($movefile['file'])),
+								'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $movefile['file'] ) ),
 								'post_content'   => '',
 								'post_status'    => 'inherit',
 							);
@@ -243,14 +258,14 @@ class Nrd_Form_Builder_Public {
 
 							$uploaded_files[ $file_key ] = wp_get_attachment_url( $attach_id );
 						} else {
-							$msg = isset( $movefile['error'] ) ? $movefile['error'] : 'Unknown upload error';
-							$errorMessages[] = 'Error uploading file (' . esc_html($file_key) . '): ' . esc_html($msg);
+							$msg             = isset( $movefile['error'] ) ? $movefile['error'] : 'Unknown upload error';
+							$errorMessages[] = 'Error uploading file (' . esc_html( $file_key ) . '): ' . esc_html( $msg );
 						}
-					} elseif ( isset($file['error']) && $file['error'] !== UPLOAD_ERR_NO_FILE ) {
-						$errorMessages[] = 'File upload error (' . esc_html($file_key) . '): code ' . intval($file['error']);
+					} elseif ( isset( $file['error'] ) && $file['error'] !== UPLOAD_ERR_NO_FILE ) {
+						$errorMessages[] = 'File upload error (' . esc_html( $file_key ) . '): code ' . intval( $file['error'] );
 					}
 				} catch ( \Throwable $t ) {
-					$errorMessages[] = 'Unexpected file upload error (' . esc_html($file_key) . '): ' . esc_html($t->getMessage());
+					$errorMessages[] = 'Unexpected file upload error (' . esc_html( $file_key ) . '): ' . esc_html( $t->getMessage() );
 				}
 			}
 		}
@@ -267,16 +282,20 @@ class Nrd_Form_Builder_Public {
 
 		$dataArray = array();
 		foreach ( $_POST as $k => $v ) {
-			if ( $k === 'action' ) continue;
-			if ( strpos( $k, '_' ) === 0 ) continue; // ignore WP internal/system keys
+			if ( $k === 'action' ) {
+				continue;
+			}
+			if ( strpos( $k, '_' ) === 0 ) {
+				continue; // ignore WP internal/system keys
+			}
 			// keep non-whitelisted dynamic fields too, they’re user fields
-			$dataArray[ $k ] = is_array($v) ? array_map( 'sanitize_text_field', wp_unslash( $v ) ) : sanitize_text_field( wp_unslash( $v ) );
+			$dataArray[ $k ] = is_array( $v ) ? array_map( 'sanitize_text_field', wp_unslash( $v ) ) : sanitize_text_field( wp_unslash( $v ) );
 		}
 
 		// Extract and remove internal fields
-		$googleSheetId   = isset($dataArray['google_sheet_id']) ? sanitize_text_field( $dataArray['google_sheet_id'] ) : '';
-		$googleSheetPage = isset($dataArray['google_sheet_page']) ? sanitize_text_field( $dataArray['google_sheet_page'] ) : '';
-		$formTitle       = isset($dataArray['form_title']) ? sanitize_text_field( $dataArray['form_title'] ) : 'Form Submission';
+		$googleSheetId   = isset( $dataArray['google_sheet_id'] ) ? sanitize_text_field( $dataArray['google_sheet_id'] ) : '';
+		$googleSheetPage = isset( $dataArray['google_sheet_page'] ) ? sanitize_text_field( $dataArray['google_sheet_page'] ) : '';
+		$formTitle       = isset( $dataArray['form_title'] ) ? sanitize_text_field( $dataArray['form_title'] ) : 'Form Submission';
 
 		unset( $dataArray['google_sheet_id'], $dataArray['google_sheet_page'], $dataArray['form_title'], $dataArray['form_id'], $dataArray['nrd_fb_nonce'] );
 
@@ -293,7 +312,7 @@ class Nrd_Form_Builder_Public {
 			}
 		} catch ( \Throwable $t ) {
 			$errorMessages[] = 'Email error: ' . esc_html( $t->getMessage() );
-		}	
+		}
 
 		$errorMessages[] = $googleSheetId ? 'Google Sheets ID: ' . esc_html( $googleSheetId ) : '';
 
@@ -321,7 +340,7 @@ class Nrd_Form_Builder_Public {
 
 		// ---- 6) Respond ------------------------------------------------------------
 		$payload = array(
-			'status'        => empty($errorMessages) ? 'success' : 'error',
+			'status'        => empty( $errorMessages ) ? 'success' : 'error',
 			'messages'      => $successMessages,
 			'errors'        => $errorMessages,
 			'submission_id' => $submissionResult['ok'] ? intval( $submissionResult['id'] ) : null,
@@ -343,117 +362,132 @@ class Nrd_Form_Builder_Public {
 	 *
 	 * @return array { ok: bool, id?: int, error?: string }
 	 */
-	private function createSubmissionPost($formIdFromRequest, array $form_data, $formTitle) {
+	private function createSubmissionPost( $formIdFromRequest, array $form_data, $formTitle ) {
 		try {
-			$title = (string) ($formTitle ?: 'Form Submission');
+			$title           = (string) ( $formTitle ?: 'Form Submission' );
 			$submission_post = array(
 				'post_type'   => 'nrd-form-bd-submit',
 				'post_status' => 'publish',
-				'post_title'  => $title . ' – ' . current_time('mysql'),
+				'post_title'  => $title . ' – ' . current_time( 'mysql' ),
 				'post_parent' => $formIdFromRequest ?: 0,
 			);
 
-			$submission_id = wp_insert_post($submission_post, true);
-			if (is_wp_error($submission_id)) {
-				return array('ok' => false, 'error' => $submission_id->get_error_message());
+			$submission_id = wp_insert_post( $submission_post, true );
+			if ( is_wp_error( $submission_id ) ) {
+				return array(
+					'ok'    => false,
+					'error' => $submission_id->get_error_message(),
+				);
 			}
 
 			// Full JSON payload
-			$encoded = wp_json_encode($form_data);
-			if ($encoded === false || $encoded === null) {
+			$encoded = wp_json_encode( $form_data );
+			if ( $encoded === false || $encoded === null ) {
 				// Still create the post, but warn
-				update_post_meta($submission_id, '_nrd_fb_json_error', 'Failed to encode submission payload as JSON');
+				update_post_meta( $submission_id, '_nrd_fb_json_error', 'Failed to encode submission payload as JSON' );
 			} else {
-				add_post_meta($submission_id, '_nrd_fb_submission_json', $encoded);
+				add_post_meta( $submission_id, '_nrd_fb_submission_json', $encoded );
 			}
 
 			// Per-field meta (strings only; arrays/objects to JSON)
-			foreach ($form_data as $key => $value) {
-				$meta_key = sanitize_key('_fld_' . $key);
-				$val      = is_scalar($value) ? (string)$value : wp_json_encode($value);
+			foreach ( $form_data as $key => $value ) {
+				$meta_key = sanitize_key( '_fld_' . $key );
+				$val      = is_scalar( $value ) ? (string) $value : wp_json_encode( $value );
 				// sanitize text, but allow URLs/emails to pass as text
-				add_post_meta($submission_id, $meta_key, wp_kses_post($val));
+				add_post_meta( $submission_id, $meta_key, wp_kses_post( $val ) );
 			}
 
 			// Common quick-look fields
-			if (!empty($form_data['email'])) {
-				update_post_meta($submission_id, '_nrd_fb_email', sanitize_email($form_data['email']));
+			if ( ! empty( $form_data['email'] ) ) {
+				update_post_meta( $submission_id, '_nrd_fb_email', sanitize_email( $form_data['email'] ) );
 			}
-			if (!empty($form_data['name'])) {
-				update_post_meta($submission_id, '_nrd_fb_name', sanitize_text_field($form_data['name']));
+			if ( ! empty( $form_data['name'] ) ) {
+				update_post_meta( $submission_id, '_nrd_fb_name', sanitize_text_field( $form_data['name'] ) );
 			}
 
-			return array('ok' => true, 'id' => (int) $submission_id);
-		} catch (\Throwable $t) {
-			return array('ok' => false, 'error' => $t->getMessage());
+			return array(
+				'ok' => true,
+				'id' => (int) $submission_id,
+			);
+		} catch ( \Throwable $t ) {
+			return array(
+				'ok'    => false,
+				'error' => $t->getMessage(),
+			);
 		}
 	}
 
 	// function addLeadToGoogleSheets($leadData, $googleSheetId, $googleSheetPage) {
-	// 	require_once plugin_dir_path(__DIR__) . 'vendor/autoload.php';
-	
-	// 	try {
-	// 		// Configure the Google Client
-	// 		$client = new \Google_Client();
-	// 		$client->setApplicationName('Google Sheets with Primo');
-	// 		$client->setScopes([\Google_Service_Sheets::SPREADSHEETS]);
-	// 		$client->setAccessType('offline');
-	// 		$client->setAuthConfig(__DIR__ . '/credentials.json');
-		
-	// 		$service = new Google_Service_Sheets($client);
-	// 		$spreadsheetId = $googleSheetId;
-		
-	// 		$range = $googleSheetPage; // Sheet name
-	// 		// Prepare headers and values
-	// 		$headers = array_keys($leadData);
-	// 		$values = array_values($leadData);
-	
-	// 		// Get the existing headers from the sheet
-	// 		$response = $service->spreadsheets_values->get($spreadsheetId, $range);
-	// 		$existingHeaders = $response->getValues() ? $response->getValues()[0] : [];
-	
-	// 		// If headers are not present, add them
-	// 		if (empty($existingHeaders)) {
-	// 			$headerBody = new Google_Service_Sheets_ValueRange([
-	// 				'values' => [$headers]
-	// 			]);
-	// 			$service->spreadsheets_values->append(
-	// 				$spreadsheetId,
-	// 				$range,
-	// 				$headerBody,
-	// 				['valueInputOption' => 'RAW']
-	// 			);
-	// 		}
-	
-	// 		// Append values
-	// 		$valueBody = new Google_Service_Sheets_ValueRange([
-	// 			'values' => [$values]
-	// 		]);
-	// 		$params = [
-	// 			'valueInputOption' => 'RAW'
-	// 		];
-	
-	// 		$result = $service->spreadsheets_values->append(
-	// 			$spreadsheetId,
-	// 			$range,
-	// 			$valueBody,
-	// 			$params
-	// 		);
-	
-	// 		return true; // Success
-	// 	} catch (Exception $e) {
-	// 		// error_log('Error adding lead to Google Sheets: ' . $e->getMessage());
-	// 		return $e->getMessage(); 
-	// 	}
+	//  require_once plugin_dir_path(__DIR__) . 'vendor/autoload.php';
+
+	//  try {
+	//      // Configure the Google Client
+	//      $client = new \Google_Client();
+	//      $client->setApplicationName('Google Sheets with Primo');
+	//      $client->setScopes([\Google_Service_Sheets::SPREADSHEETS]);
+	//      $client->setAccessType('offline');
+	//      $client->setAuthConfig(__DIR__ . '/credentials.json');
+
+	//      $service = new Google_Service_Sheets($client);
+	//      $spreadsheetId = $googleSheetId;
+
+	//      $range = $googleSheetPage; // Sheet name
+	//      // Prepare headers and values
+	//      $headers = array_keys($leadData);
+	//      $values = array_values($leadData);
+
+	//      // Get the existing headers from the sheet
+	//      $response = $service->spreadsheets_values->get($spreadsheetId, $range);
+	//      $existingHeaders = $response->getValues() ? $response->getValues()[0] : [];
+
+	//      // If headers are not present, add them
+	//      if (empty($existingHeaders)) {
+	//          $headerBody = new Google_Service_Sheets_ValueRange([
+	//              'values' => [$headers]
+	//          ]);
+	//          $service->spreadsheets_values->append(
+	//              $spreadsheetId,
+	//              $range,
+	//              $headerBody,
+	//              ['valueInputOption' => 'RAW']
+	//          );
+	//      }
+
+	//      // Append values
+	//      $valueBody = new Google_Service_Sheets_ValueRange([
+	//          'values' => [$values]
+	//      ]);
+	//      $params = [
+	//          'valueInputOption' => 'RAW'
+	//      ];
+
+	//      $result = $service->spreadsheets_values->append(
+	//          $spreadsheetId,
+	//          $range,
+	//          $valueBody,
+	//          $params
+	//      );
+
+	//      return true; // Success
+	//  } catch (Exception $e) {
+	//      // error_log('Error adding lead to Google Sheets: ' . $e->getMessage());
+	//      return $e->getMessage();
+	//  }
 	// }
 
-	function addLeadToGoogleSheets($leadData, $googleSheetId, $googleSheetPage) {
-		if (!$googleSheetId)  $googleSheetId  = get_option(Nrd_FB_Sheets_Service::OPT_SHEET_ID, '');
-		if (!$googleSheetPage) $googleSheetPage = get_option(Nrd_FB_Sheets_Service::OPT_SHEET_TAB, 'Leads');
-		if (!$googleSheetId)  return 'No Spreadsheet ID configured.';
+	function addLeadToGoogleSheets( $leadData, $googleSheetId, $googleSheetPage ) {
+		if ( ! $googleSheetId ) {
+			$googleSheetId = get_option( Nrd_FB_Sheets_Service::OPT_SHEET_ID, '' );
+		}
+		if ( ! $googleSheetPage ) {
+			$googleSheetPage = get_option( Nrd_FB_Sheets_Service::OPT_SHEET_TAB, 'Leads' );
+		}
+		if ( ! $googleSheetId ) {
+			return 'No Spreadsheet ID configured.';
+		}
 
 		$service = new Nrd_FB_Sheets_Service();
-		return $service->append_row($leadData, $googleSheetId, $googleSheetPage, true); // true|error string
+		return $service->append_row( $leadData, $googleSheetId, $googleSheetPage, true ); // true|error string
 	}
 
 
@@ -468,15 +502,17 @@ class Nrd_Form_Builder_Public {
 		}
 		if ( ! $to ) {
 			$adminEmail = get_option( 'admin_email' );
-			$to = is_email( $adminEmail ) ? $adminEmail : '';
+			$to         = is_email( $adminEmail ) ? $adminEmail : '';
 		}
-		if ( ! $to ) return false; // no valid recipient
+		if ( ! $to ) {
+			return false; // no valid recipient
+		}
 
 		// HTML table body
 		$email_body  = '<h1>New Form Submission for: ' . esc_html( $formTitle ) . '</h1>';
 		$email_body .= "<table border='1' cellpadding='5' cellspacing='0'>";
 		foreach ( $form_data as $key => $value ) {
-			$val = is_scalar($value) ? (string) $value : wp_json_encode( $value );
+			$val         = is_scalar( $value ) ? (string) $value : wp_json_encode( $value );
 			$email_body .= '<tr><th style="text-align:left;">' . esc_html( $key ) . '</th><td>' . esc_html( $val ) . '</td></tr>';
 		}
 		$email_body .= '</table>';

@@ -15,8 +15,8 @@
  * @wordpress-plugin
  * Plugin Name:       Nrd Form Builder Premium
  * Plugin URI:        https://github.com/Alucard17th
- * Description:       Drag and drop form builder for wordpress
- * Version:           1.0.1
+ * Description:       Drag and drop form builder for WordPress
+ * Version:           1.0.0
  * Author:            Noureddine Eddallal
  * Author URI:        https://github.com/Alucard17th/
  * License:           GPL-2.0+
@@ -35,10 +35,12 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'NRD_FORM_BUILDER_VERSION', '1.0.1' );
+define( 'NRD_FORM_BUILDER_VERSION', '1.0.0' );
 
 // API Base URL
-define('NRD_API_BASE_URL', 'http://127.0.0.1:8000/api/nrd-form-builder/');
+if ( ! defined( 'NRD_API_BASE_URL' ) ) {
+	define( 'NRD_API_BASE_URL', 'http://127.0.0.1:8000/api/nrd-form-builder/' );
+}
 
 /**
  * The code that runs during plugin activation.
@@ -49,9 +51,9 @@ function activate_nrd_form_builder() {
 	Nrd_Form_Builder_Activator::activate();
 
 	// Schedule the cron job to check license status when the plugin is activated
-    if (!wp_next_scheduled('check_plugin_license')) {
-        wp_schedule_event(time(), 'daily', 'check_plugin_license');
-    }
+	if ( ! wp_next_scheduled( 'check_plugin_license' ) ) {
+		wp_schedule_event( time(), 'daily', 'check_plugin_license' );
+	}
 }
 
 /**
@@ -63,10 +65,10 @@ function deactivate_nrd_form_builder() {
 	Nrd_Form_Builder_Deactivator::deactivate();
 
 	// Unschedule the cron job when the plugin is deactivated
-	$timestamp = wp_next_scheduled('check_plugin_license');
-    if ($timestamp) {
-        wp_unschedule_event($timestamp, 'check_plugin_license');
-    }
+	$timestamp = wp_next_scheduled( 'check_plugin_license' );
+	if ( $timestamp ) {
+		wp_unschedule_event( $timestamp, 'check_plugin_license' );
+	}
 }
 
 register_activation_hook( __FILE__, 'activate_nrd_form_builder' );
@@ -91,6 +93,5 @@ function run_nrd_form_builder() {
 
 	$plugin = new Nrd_Form_Builder();
 	$plugin->run();
-
 }
 run_nrd_form_builder();
